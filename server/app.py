@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, request, make_response
+from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 
@@ -11,13 +11,71 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///newsletters.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-migrate = Migrate(app, db)
-db.init_app(app)
+migrate = Migrate(app, db)  #Confugures Flask-Migrate wiht the Flask app and the database instance.
+db.init_app(app)  # Initializes the Flask app with the database instance.
 
-api = Api(app)
+api = Api(app)  # Initiaizes a Flask-RESTful API using the Flask app
 
-class Home(Resource):
-    pass
+# DEFIFINING RESOURCES
+class Index(Resource):
+    def get(self):
+        response_dict = {
+            "index": "Welcome to the Newsletter RESTFul API",
+        }    
+        
+        response = make_response(
+            jsonify(response_dict),
+            200
+        )
+        
+        return response
+    
+api.add_resource(Index, '/')
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+# Retrieving Records wiht Flask_RESTful
+class Newsletters(Resource):
+    
+    def get(self):
+        response_dict_list = [n.to_dict() for n in Newsletter.query.all()]
+        
+        response = make_response(
+            jsonify(response_dict_list),
+            200
+        )
+        
+        return response
+    
+api.add_resource(Newsletters, '/newsletters')
+
+# Creating Records with Flask_RESTful
+def post(self):
+    new_record = Newsletter(
+        title=request.form['title'],
+        body=request.form['body'],
+    )
+    
+    db.session.add(new_record)
+    db.session.commit()
+    
+    response_dict = new_record.to_dict()
+    
+    response = make_response(
+        jsonify(response_dict),
+        201,
+    )
+    
+    return response
+
+# Build and retrieve a single resource
+class NewsletterByID(Resource):
+    def get(self, id):
+        response_dict = Newsletter.query.filter_by(id=id).first().to_dict()
+        
+        response = make_response(
+            jsonify(response_dict),
+            200
+        )
+        
+        return response
+    
+api.add_resource(NewsletterByID, '/newsletters/<int:id>')
