@@ -45,7 +45,7 @@ class Newsletters(Resource):
         
         return response
     
-api.add_resource(Newsletters, '/newsletters')
+
 
 # Creating Records with Flask_RESTful
 def post(self):
@@ -65,6 +65,8 @@ def post(self):
     )
     
     return response
+
+api.add_resource(Newsletters, '/newsletters')
 
 # Build and retrieve a single resource
 class NewsletterByID(Resource):
